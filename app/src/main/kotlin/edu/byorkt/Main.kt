@@ -2,7 +2,16 @@ package edu.byorkt
 
 class Main {
     fun run() {
-        println("Impleméntame")
+        val interpreter = Interpreter()
+
+        val code = """
+            (define CERO 2)
+            CERO
+        """.trimIndent()
+
+        val result = interpreter.run(code)
+
+        println("Resultado: $result")
     }
 }
 
