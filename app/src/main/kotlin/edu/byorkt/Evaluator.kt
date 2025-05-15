@@ -48,6 +48,25 @@ class Evaluator {
                     env.define(name, value)
                     Value.Symbol(name)
                 }
+                "lambda" -> {
+                    val paramsExpr = args[0] as Expr.List
+                    val params = paramsExpr.elements.map { (it as Expr.Symbol).name }
+                    val body = args[1]
+                    Value.Procedure(params, body, env)
+                }
+                "if" -> {
+                    val condition = eval(args[0], env)
+                    return when (condition) {
+                        is Value.Boolean -> {
+                            if (condition.value) {
+                                eval(args[1], env)
+                            } else {
+                                eval(args[2], env)
+                            }
+                        }
+                        else -> throw RuntimeException("La condición de 'if' no es booleana: $condition")
+                    }
+                }
                 else -> {
                     val func = eval(head, env)
                     val argVals = args.map { eval(it, env) }
@@ -83,17 +102,62 @@ class Evaluator {
                 Value.Number(sum)
             }
         )
+        global.define("-", Value.Builtin("-") {
+            if (it.size == 1) {
+                Value.Number(-(it[0] as Value.Number).value)
+            } else {
+                val head = (it[0] as Value.Number).value
+                val rest = it.drop(1).map { v -> (v as Value.Number).value }
+                Value.Number(rest.fold(head) { acc, v -> acc - v })
+            }
+        })
+        global.define("*", Value.Builtin("*") {
+            val product = it.map { v -> (v as Value.Number).value }.reduce { acc, v -> acc * v }
+            Value.Number(product)
+        })
+        global.define("/", Value.Builtin("/") {
+            val head = (it[0] as Value.Number).value
+            val rest = it.drop(1).map { v -> (v as Value.Number).value }
+            Value.Number(rest.fold(head) { acc, v -> acc / v })
+        })
+        global.define("%", Value.Builtin("%") {
+            val a = (it[0] as Value.Number).value
+            val b = (it[1] as Value.Number).value
+            Value.Number(a % b)
+        })
+        global.define("<", Value.Builtin("<") {
+            val (a, b) = it.map { v -> (v as Value.Number).value }
+            Value.Boolean(a < b)
+        })
+        global.define(">", Value.Builtin(">") {
+            val (a, b) = it.map { v -> (v as Value.Number).value }
+            Value.Boolean(a > b)
+        })
+        global.define("<=", Value.Builtin("<=") {
+            val (a, b) = it.map { v -> (v as Value.Number).value }
+            Value.Boolean(a <= b)
+        })
+        global.define(">=", Value.Builtin(">=") {
+            val (a, b) = it.map { v -> (v as Value.Number).value }
+            Value.Boolean(a >= b)
+        })
+        global.define("and", Value.Builtin("and") {
+            val result = it.all { v -> (v as Value.Boolean).value }
+            Value.Boolean(result)
+        })
+        global.define("or", Value.Builtin("or") {
+            val result = it.any { v -> (v as Value.Boolean).value }
+            Value.Boolean(result)
+        })
+        global.define("not", Value.Builtin("not") {
+            val v = (it[0] as Value.Boolean).value
+            Value.Boolean(!v)
+        })
         global.define(
             "equal?",
             Value.Builtin("equal?") {
                 val (a, b) = it
                 Value.Boolean(a == b)
-            }
-        )
-        global.define(
-            "if",
-            Value.Builtin("if") {
-                throw DirectIfCallException()
             }
         )
     }

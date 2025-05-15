@@ -5,8 +5,8 @@ class Main {
         val interpreter = Interpreter()
 
         val code = """
-            (define CERO 2)
-            CERO
+            (define identidad (lambda (x) x))
+            (identidad 5)
         """.trimIndent()
 
         val result = interpreter.run(code)
