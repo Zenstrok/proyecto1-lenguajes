@@ -21,7 +21,9 @@ class Parser {
     }
 
     private fun parseExpr(tokens: Iterator<String>): Expr {
-        if (!tokens.hasNext()) error("Unexpected end of input")
+        if (!tokens.hasNext()) {
+            error("Unexpected end of input")
+        }
 
         val token = tokens.next()
         return when {
@@ -29,7 +31,9 @@ class Parser {
                 val elements = mutableListOf<Expr>()
                 while (tokens.hasNext()) {
                     val token = tokens.next()
-                    if (token == ")") break
+                    if (token == ")") {
+                        break
+                    }
                     tokens.previous()
                     elements.add(parseExpr(tokens))
                 }
@@ -44,7 +48,10 @@ class Parser {
 
     // Agrega una función de extensión útil para retroceder un paso en el iterator
     private fun <T> Iterator<T>.previous() {
-        if (this is ListIterator) this.previous()
-        else throw UnsupportedOperationException("Need a ListIterator to go back")
+        if (this is ListIterator) {
+            this.previous()
+        } else {
+            throw UnsupportedOperationException("Need a ListIterator to go back")
+        }
     }
 }

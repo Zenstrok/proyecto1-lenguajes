@@ -1,5 +1,9 @@
 package edu.byorkt
 
+// Para cumplir con detekt
+class UndefinedVariableException(name: String) :
+    RuntimeException("Variable '$name' no definida")
+
 class Environment(
     private val parent: Environment? = null,
     private val values: MutableMap<String, Value> = mutableMapOf()
@@ -14,12 +18,12 @@ class Environment(
             values[name] = value
         } else {
             parent?.set(name, value)
-                ?: throw RuntimeException("Variable '$name' no definida")
+                ?: throw UndefinedVariableException(name)
         }
     }
 
     fun get(name: String): Value {
         return values[name] ?: parent?.get(name)
-        ?: throw RuntimeException("Variable '$name' no definida")
+            ?: throw UndefinedVariableException(name)
     }
 }

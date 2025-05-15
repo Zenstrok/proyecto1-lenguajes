@@ -1,5 +1,14 @@
 package edu.byorkt
 
+class InvalidApplicationException(func: Value) :
+    RuntimeException("No se puede aplicar: $func")
+
+class EmptyListException :
+    RuntimeException("Lista vacía no evaluable")
+
+class DirectIfCallException :
+    RuntimeException("'if' no debe ser llamado directamente")
+
 class Evaluator {
 
     private val global = Environment()
@@ -24,7 +33,9 @@ class Evaluator {
     }
 
     private fun evalList(expr: Expr.List, env: Environment): Value {
-        if (expr.elements.isEmpty()) error("Lista vacía no evaluable")
+        if (expr.elements.isEmpty()) {
+            throw EmptyListException()
+        }
 
         val head = expr.elements[0]
         val args = expr.elements.drop(1)
@@ -60,21 +71,30 @@ class Evaluator {
                 }
                 eval(func.body, localEnv)
             }
-            else -> throw RuntimeException("No se puede aplicar: $func")
+            else -> throw InvalidApplicationException(func)
         }
     }
 
     private fun loadBuiltins() {
-        global.define("+", Value.Builtin("+") {
-            val sum = it.sumOf { v -> (v as Value.Number).value }
-            Value.Number(sum)
-        })
-        global.define("equal?", Value.Builtin("equal?") {
-            val (a, b) = it
-            Value.Boolean(a == b)
-        })
-        global.define("if", Value.Builtin("if") {
-            error("'if' no debe ser llamado directamente")
-        })
+        global.define(
+            "+",
+            Value.Builtin("+") {
+                val sum = it.sumOf { v -> (v as Value.Number).value }
+                Value.Number(sum)
+            }
+        )
+        global.define(
+            "equal?",
+            Value.Builtin("equal?") {
+                val (a, b) = it
+                Value.Boolean(a == b)
+            }
+        )
+        global.define(
+            "if",
+            Value.Builtin("if") {
+                throw DirectIfCallException()
+            }
+        )
     }
 }
