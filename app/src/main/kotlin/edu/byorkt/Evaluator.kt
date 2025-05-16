@@ -1,13 +1,15 @@
 package edu.byorkt
 
+import kotlin.collections.get
+
 class InvalidApplicationException(func: Value) :
     RuntimeException("No se puede aplicar: $func")
 
 class EmptyListException :
     RuntimeException("Lista vacía no evaluable")
 
-class DirectIfCallException :
-    RuntimeException("'if' no debe ser llamado directamente")
+class NotBooleanIfException(condition: Value) :
+    RuntimeException("La condición de 'if' no es booleana: $condition")
 
 class Evaluator {
 
@@ -40,44 +42,51 @@ class Evaluator {
         val head = expr.elements[0]
         val args = expr.elements.drop(1)
 
-        if (head is Expr.Symbol) {
-            return when (head.name) {
-                "define" -> {
-                    val name = (args[0] as Expr.Symbol).name
-                    val value = eval(args[1], env)
-                    env.define(name, value)
-                    Value.Symbol(name)
-                }
-                "lambda" -> {
-                    val paramsExpr = args[0] as Expr.List
-                    val params = paramsExpr.elements.map { (it as Expr.Symbol).name }
-                    val body = args[1]
-                    Value.Procedure(params, body, env)
-                }
-                "if" -> {
-                    val condition = eval(args[0], env)
-                    return when (condition) {
-                        is Value.Boolean -> {
-                            if (condition.value) {
-                                eval(args[1], env)
-                            } else {
-                                eval(args[2], env)
-                            }
-                        }
-                        else -> throw RuntimeException("La condición de 'if' no es booleana: $condition")
-                    }
-                }
-                else -> {
-                    val func = eval(head, env)
-                    val argVals = args.map { eval(it, env) }
-                    apply(func, argVals)
-                }
+        return when {
+            head is Expr.Symbol -> handleSpecialForms(head, args, env)
+            else -> {
+                val func = eval(head, env)
+                val argVals = args.map { eval(it, env) }
+                return apply(func, argVals)
+            }
+        }
+    }
+
+    private fun handleSpecialForms(head: Expr.Symbol, args: List<Expr>, env: Environment): Value =
+        when (head.name) {
+            "define" -> {
+                val name = (args[0] as Expr.Symbol).name
+                val value = eval(args[1], env)
+                env.define(name, value)
+                Value.Symbol(name)
+            }
+            "lambda" -> {
+                val paramsExpr = args[0] as Expr.List
+                val params = paramsExpr.elements.map { (it as Expr.Symbol).name }
+                val body = args[1]
+                Value.Procedure(params, body, env)
+            }
+            "if" -> handleIf(args, env)
+            else -> {
+                val func = eval(head, env)
+                val argVals = args.map { eval(it, env) }
+                apply(func, argVals)
             }
         }
 
-        val func = eval(head, env)
-        val argVals = args.map { eval(it, env) }
-        return apply(func, argVals)
+    private fun handleIf(args: List<Expr>, env: Environment): Value {
+        val condition = eval(args[0], env)
+        return when (condition) {
+            is Value.Boolean -> {
+                if (condition.value) {
+                    eval(args[1], env)
+                } else {
+                    eval(args[2], env)
+                }
+            }
+
+            else -> throw NotBooleanIfException(condition)
+        }
     }
 
     private fun apply(func: Value, args: List<Value>): Value {
@@ -90,11 +99,18 @@ class Evaluator {
                 }
                 eval(func.body, localEnv)
             }
+
             else -> throw InvalidApplicationException(func)
         }
     }
 
     private fun loadBuiltins() {
+        loadArithmeticLogicalBuiltins()
+        loadComparisonBuiltins()
+        loadLogicalBuiltins()
+    }
+
+    private fun loadArithmeticLogicalBuiltins() {
         global.define(
             "+",
             Value.Builtin("+") {
@@ -102,62 +118,101 @@ class Evaluator {
                 Value.Number(sum)
             }
         )
-        global.define("-", Value.Builtin("-") {
-            if (it.size == 1) {
-                Value.Number(-(it[0] as Value.Number).value)
-            } else {
+        global.define(
+            "-",
+            Value.Builtin("-") {
+                if (it.size == 1) {
+                    Value.Number(-(it[0] as Value.Number).value)
+                } else {
+                    val head = (it[0] as Value.Number).value
+                    val rest = it.drop(1).map { v -> (v as Value.Number).value }
+                    Value.Number(rest.fold(head) { acc, v -> acc - v })
+                }
+            }
+        )
+        global.define(
+            "*",
+            Value.Builtin("*") {
+                val product = it.map { v -> (v as Value.Number).value }.reduce { acc, v -> acc * v }
+                Value.Number(product)
+            }
+        )
+        global.define(
+            "/",
+            Value.Builtin("/") {
                 val head = (it[0] as Value.Number).value
                 val rest = it.drop(1).map { v -> (v as Value.Number).value }
-                Value.Number(rest.fold(head) { acc, v -> acc - v })
+                Value.Number(rest.fold(head) { acc, v -> acc / v })
             }
-        })
-        global.define("*", Value.Builtin("*") {
-            val product = it.map { v -> (v as Value.Number).value }.reduce { acc, v -> acc * v }
-            Value.Number(product)
-        })
-        global.define("/", Value.Builtin("/") {
-            val head = (it[0] as Value.Number).value
-            val rest = it.drop(1).map { v -> (v as Value.Number).value }
-            Value.Number(rest.fold(head) { acc, v -> acc / v })
-        })
-        global.define("%", Value.Builtin("%") {
-            val a = (it[0] as Value.Number).value
-            val b = (it[1] as Value.Number).value
-            Value.Number(a % b)
-        })
-        global.define("<", Value.Builtin("<") {
-            val (a, b) = it.map { v -> (v as Value.Number).value }
-            Value.Boolean(a < b)
-        })
-        global.define(">", Value.Builtin(">") {
-            val (a, b) = it.map { v -> (v as Value.Number).value }
-            Value.Boolean(a > b)
-        })
-        global.define("<=", Value.Builtin("<=") {
-            val (a, b) = it.map { v -> (v as Value.Number).value }
-            Value.Boolean(a <= b)
-        })
-        global.define(">=", Value.Builtin(">=") {
-            val (a, b) = it.map { v -> (v as Value.Number).value }
-            Value.Boolean(a >= b)
-        })
-        global.define("and", Value.Builtin("and") {
-            val result = it.all { v -> (v as Value.Boolean).value }
-            Value.Boolean(result)
-        })
-        global.define("or", Value.Builtin("or") {
-            val result = it.any { v -> (v as Value.Boolean).value }
-            Value.Boolean(result)
-        })
-        global.define("not", Value.Builtin("not") {
-            val v = (it[0] as Value.Boolean).value
-            Value.Boolean(!v)
-        })
+        )
+        global.define(
+            "%",
+            Value.Builtin("%") {
+                val a = (it[0] as Value.Number).value
+                val b = (it[1] as Value.Number).value
+                Value.Number(a % b)
+            }
+        )
+    }
+
+    private fun loadComparisonBuiltins() {
+        global.define(
+            "<",
+            Value.Builtin("<") {
+                val (a, b) = it.map { v -> (v as Value.Number).value }
+                Value.Boolean(a < b)
+            }
+        )
+        global.define(
+            ">",
+            Value.Builtin(">") {
+                val (a, b) = it.map { v -> (v as Value.Number).value }
+                Value.Boolean(a > b)
+            }
+        )
+        global.define(
+            "<=",
+            Value.Builtin("<=") {
+                val (a, b) = it.map { v -> (v as Value.Number).value }
+                Value.Boolean(a <= b)
+            }
+        )
+        global.define(
+            ">=",
+            Value.Builtin(">=") {
+                val (a, b) = it.map { v -> (v as Value.Number).value }
+                Value.Boolean(a >= b)
+            }
+        )
         global.define(
             "equal?",
             Value.Builtin("equal?") {
                 val (a, b) = it
                 Value.Boolean(a == b)
+            }
+        )
+    }
+
+    private fun loadLogicalBuiltins() {
+        global.define(
+            "and",
+            Value.Builtin("and") {
+                val result = it.all { v -> (v as Value.Boolean).value }
+                Value.Boolean(result)
+            }
+        )
+        global.define(
+            "or",
+            Value.Builtin("or") {
+                val result = it.any { v -> (v as Value.Boolean).value }
+                Value.Boolean(result)
+            }
+        )
+        global.define(
+            "not",
+            Value.Builtin("not") {
+                val v = (it[0] as Value.Boolean).value
+                Value.Boolean(!v)
             }
         )
     }
