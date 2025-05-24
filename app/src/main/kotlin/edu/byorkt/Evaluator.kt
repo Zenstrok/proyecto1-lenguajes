@@ -1,80 +1,73 @@
 package edu.byorkt
 
-import kotlin.collections.get
-
 class InvalidApplicationException(func: Value) :
     RuntimeException("No se puede aplicar: $func")
 
-class EmptyListException :
-    RuntimeException("Lista vacía no evaluable")
-
-class NotBooleanIfException(condition: Value) :
-    RuntimeException("La condición de 'if' no es booleana: $condition")
-
 class Evaluator {
-
     private val global = Environment()
 
     init {
         loadBuiltins()
     }
 
-    fun evalAll(exprs: List<Expr>): Value {
+    fun evalAll(expressions: List<Expression>): Value {
         var result: Value = Value.Undefined
-        for (expr in exprs) {
-            result = eval(expr, global)
+        for (expression in expressions) {
+            result = eval(expression, global)
         }
         return result
     }
 
-    private fun eval(expr: Expr, env: Environment): Value = when (expr) {
-        is Expr.Number -> Value.Number(expr.value)
-        is Expr.Boolean -> Value.Boolean(expr.value)
-        is Expr.Symbol -> env.get(expr.name)
-        is Expr.List -> evalList(expr, env)
+    private fun eval(expression: Expression, env: Environment): Value = when (expression) {
+        is Expression.Number -> Value.Number(expression.value)
+        is Expression.Boolean -> Value.Boolean(expression.value)
+        is Expression.Symbol -> env.get(expression.name)
+        is Expression.ListExpr -> evalList(expression, env)
     }
 
-    private fun evalList(expr: Expr.List, env: Environment): Value {
-        if (expr.elements.isEmpty()) {
+    private fun evalList(expression: Expression.ListExpr, env: Environment): Value {
+        if (expression.elements.isEmpty()) {
             throw EmptyListException()
         }
 
-        val head = expr.elements[0]
-        val args = expr.elements.drop(1)
+        val head = expression.elements[0]
+        val args = expression.elements.drop(1)
 
         return when {
-            head is Expr.Symbol -> handleSpecialForms(head, args, env)
+            head is Expression.Symbol -> handleSpecialForms(head, args, env)
             else -> {
                 val func = eval(head, env)
                 val argVals = args.map { eval(it, env) }
-                return apply(func, argVals)
+                Applier.apply(func, argVals)
             }
         }
     }
 
-    private fun handleSpecialForms(head: Expr.Symbol, args: List<Expr>, env: Environment): Value =
+    private fun handleSpecialForms(head: Expression.Symbol, args: List<Expression>, env: Environment): Value =
         when (head.name) {
             "define" -> {
-                val name = (args[0] as Expr.Symbol).name
+                val name = (args[0] as Expression.Symbol).name
                 val value = eval(args[1], env)
                 env.define(name, value)
                 Value.Symbol(name)
             }
             "lambda" -> {
-                val paramsExpr = args[0] as Expr.List
-                val params = paramsExpr.elements.map { (it as Expr.Symbol).name }
+                val paramsExpression = args[0] as Expression.ListExpr
+                val params = paramsExpression.elements.map { (it as Expression.Symbol).name }
                 val body = args[1]
                 Value.Procedure(params, body, env)
             }
-            "if" -> handleIf(args, env)
+            "if" -> {
+                handleIf(args, env)
+            }
             else -> {
                 val func = eval(head, env)
                 val argVals = args.map { eval(it, env) }
-                apply(func, argVals)
+                Applier.apply(func, argVals)
             }
         }
 
-    private fun handleIf(args: List<Expr>, env: Environment): Value {
+    private fun handleIf(args: List<Expression>, env: Environment): Value {
         val condition = eval(args[0], env)
         return when (condition) {
             is Value.Boolean -> {
@@ -84,23 +77,7 @@ class Evaluator {
                     eval(args[2], env)
                 }
             }
-
             else -> throw NotBooleanIfException(condition)
-        }
-    }
-
-    private fun apply(func: Value, args: List<Value>): Value {
-        return when (func) {
-            is Value.Builtin -> func.impl(args)
-            is Value.Procedure -> {
-                val localEnv = Environment(func.env)
-                func.params.zip(args).forEach { (param, arg) ->
-                    localEnv.define(param, arg)
-                }
-                eval(func.body, localEnv)
-            }
-
-            else -> throw InvalidApplicationException(func)
         }
     }
 

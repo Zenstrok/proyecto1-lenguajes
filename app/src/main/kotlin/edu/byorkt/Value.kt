@@ -6,10 +6,14 @@ sealed class Value {
     }
 
     data class Boolean(val value: kotlin.Boolean) : Value() {
-        override fun toString() = if (value) { "#t" } else { "#f" }
+        override fun toString() = if (value) {
+            "#t"
+        } else {
+            "#f"
+        }
     }
 
-    data class Procedure(val params: List<String>, val body: Expr, val env: Environment) : Value() {
+    data class Procedure(val params: List<String>, val body: Expression, val env: Environment) : Value() {
         override fun toString() = "#<procedure>"
     }
 

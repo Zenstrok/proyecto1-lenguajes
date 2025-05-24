@@ -2,12 +2,12 @@ package edu.byorkt
 
 class Parser {
 
-    fun parse(program: String): List<Expr> {
+    fun parse(program: String): List<Expression> {
         val tokens = tokenize(program)
-        val expressions = mutableListOf<Expr>()
+        val expressions = mutableListOf<Expression>()
         val iterator = tokens.listIterator()
         while (iterator.hasNext()) {
-            expressions.add(parseExpr(iterator))
+            expressions.add(parseExpression(iterator))
         }
         return expressions
     }
@@ -20,7 +20,7 @@ class Parser {
             .filter { it.isNotEmpty() }
     }
 
-    private fun parseExpr(tokens: Iterator<String>): Expr {
+    private fun parseExpression(tokens: Iterator<String>): Expression {
         if (!tokens.hasNext()) {
             error("Unexpected end of input")
         }
@@ -28,21 +28,21 @@ class Parser {
         val token = tokens.next()
         return when {
             token == "(" -> {
-                val elements = mutableListOf<Expr>()
+                val elements = mutableListOf<Expression>()
                 while (tokens.hasNext()) {
                     val token = tokens.next()
                     if (token == ")") {
                         break
                     }
                     tokens.previous()
-                    elements.add(parseExpr(tokens))
+                    elements.add(parseExpression(tokens))
                 }
-                Expr.List(elements)
+                Expression.ListExpr(elements)
             }
-            token == "#t" -> Expr.Boolean(true)
-            token == "#f" -> Expr.Boolean(false)
-            token.toIntOrNull() != null -> Expr.Number(token.toInt())
-            else -> Expr.Symbol(token)
+            token == "#t" -> Expression.Boolean(true)
+            token == "#f" -> Expression.Boolean(false)
+            token.toIntOrNull() != null -> Expression.Number(token.toInt())
+            else -> Expression.Symbol(token)
         }
     }
 
