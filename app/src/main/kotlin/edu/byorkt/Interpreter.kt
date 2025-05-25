@@ -1,13 +1,22 @@
 package edu.byorkt
 
 class Interpreter {
-
     private val parser = Parser()
     private val evaluator = Evaluator()
 
-    fun run(program: String): String {
-        val expressions = parser.parse(program)
-        val result = evaluator.evalAll(expressions)
-        return result.toString()
+    fun run(input: String): String {
+        val exprs = read(input)
+        val result = eval(exprs)
+        return print(result)
+    }
+
+    private fun read(input: String): List<Expression> {
+        return parser.parse(input)
+    }
+    private fun eval(expressions: List<Expression>): Value {
+        return evaluator.evalAll(expressions)
+    }
+    private fun print(value: Value): String {
+        return value.toString()
     }
 }
