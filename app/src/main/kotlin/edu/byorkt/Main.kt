@@ -1,5 +1,9 @@
 package edu.byorkt
 
+// Excepción para cuando el intérprete no puede procesar la entrada.
+class ExcepcionErrorInterpretacion(entrada: String) :
+    RuntimeException("Error: La entrada '$entrada' no puede ser procesada por el interprete")
+
 /**
  * Clase principal que demuestra el uso del intérprete Byorkt.
  * Contiene ejemplos de código y el punto de entrada principal.
@@ -38,7 +42,7 @@ fun main() {
         try {
             val resultado = interprete.run(entrada)
             println(resultado)
-        } catch (e: Exception) {
+        } catch (e: ExcepcionErrorInterpretacion) {
             println("Error: ${e.message}")
         }
     }

@@ -52,6 +52,6 @@ class Entorno(
      */
     fun obtener(nombre: String): Valor {
         return valores[nombre] ?: padre?.obtener(nombre)
-        ?: throw ExcepcionVariableNoDefinida(nombre)
+            ?: throw ExcepcionVariableNoDefinida(nombre)
     }
 }

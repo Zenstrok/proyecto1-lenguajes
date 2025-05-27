@@ -6,7 +6,6 @@ package edu.byorkt
 class ExcepcionListaVacia :
     RuntimeException("Lista vacía no evaluable")
 
-
 /**
  * Excepción lanzada cuando la condición de un 'if' no es un valor booleano.
  * @property condicion Valor que se usó como condición
@@ -71,13 +70,11 @@ sealed class Expresion {
             }
         }
 
-        /**
-         * Evalúa una forma especial del lenguaje si el nombre coincide con alguna.
-         * @param nombre Nombre de la forma especial
-         * @param args Argumentos de la forma especial
-         * @param entorno Entorno de evaluación
-         * @return Resultado de evaluar la forma especial, o null si no es una forma especial
-         */
+        // Evalúa una forma especial del lenguaje si el nombre coincide con alguna.
+        // @param nombre Nombre de la forma especial
+        // @param args Argumentos de la forma especial
+        // @param entorno Entorno de evaluación
+        // @return Resultado de evaluar la forma especial, o null si no es una forma especial
         private fun evaluarFormaEspecial(nombre: String, args: List<Expresion>, entorno: Entorno): Valor? {
             return when (nombre) {
                 "define" -> evaluarDefine(args, entorno)
@@ -87,12 +84,10 @@ sealed class Expresion {
             }
         }
 
-        /**
-         * Evalúa la forma especial 'define' que define una nueva variable.
-         * @param args Argumentos [nombre, valor]
-         * @param entorno Entorno donde se definirá la variable
-         * @return Símbolo con el nombre de la variable definida
-         */
+        // Evalúa la forma especial 'define' que define una nueva variable.
+        // @param args Argumentos [nombre, valor]
+        // @param entorno Entorno donde se definirá la variable
+        // @return Símbolo con el nombre de la variable definida
         private fun evaluarDefine(args: List<Expresion>, entorno: Entorno): Valor {
             val nombre = (args[0] as Simbolo).nombre
             val valor = args[1].evaluar(entorno)
@@ -100,12 +95,10 @@ sealed class Expresion {
             return Valor.Simbolo(nombre)
         }
 
-        /**
-         * Evalúa la forma especial 'lambda' que crea un procedimiento.
-         * @param args Argumentos [parámetros, cuerpo]
-         * @param entorno Entorno de cierre léxico
-         * @return Nuevo procedimiento
-         */
+        // Evalúa la forma especial 'lambda' que crea un procedimiento.
+        // @param args Argumentos [parámetros, cuerpo]
+        // @param entorno Entorno de cierre léxico
+        // @return Nuevo procedimiento
         private fun evaluarLambda(args: List<Expresion>, entorno: Entorno): Valor {
             val parametrosExpr = (args[0] as Lista).elementos
             val parametros = parametrosExpr.map { (it as Simbolo).nombre }
@@ -113,13 +106,11 @@ sealed class Expresion {
             return Valor.Procedimiento(parametros, cuerpo, entorno)
         }
 
-        /**
-         * Evalúa la forma especial 'if' (condicional).
-         * @param args Argumentos [condición, entonces, sino]
-         * @param entorno Entorno de evaluación
-         * @return Resultado de evaluar la rama correspondiente
-         * @throws ExcepcionCondicionalNoBooleana si la condición no es booleana
-         */
+        // Evalúa la forma especial 'if' (condicional).
+        // @param args Argumentos [condición, entonces, sino]
+        // @param entorno Entorno de evaluación
+        // @return Resultado de evaluar la rama correspondiente
+        // @throws ExcepcionCondicionalNoBooleana si la condición no es booleana
         private fun evaluarIf(args: List<Expresion>, entorno: Entorno): Valor {
             val condicion = args[0].evaluar(entorno)
             if (condicion is Valor.Booleano) {
@@ -133,13 +124,11 @@ sealed class Expresion {
             }
         }
 
-        /**
-         * Evalúa una llamada a función normal.
-         * @param funcExpr Expresión que evalúa a la función a llamar
-         * @param args Argumentos a pasar a la función
-         * @param entorno Entorno de evaluación
-         * @return Resultado de aplicar la función a los argumentos
-         */
+        // Evalúa una llamada a función normal.
+        // @param funcExpr Expresión que evalúa a la función a llamar
+        // @param args Argumentos a pasar a la función
+        // @param entorno Entorno de evaluación
+        // @return Resultado de aplicar la función a los argumentos
         private fun evaluarLlamadaFuncion(funcExpr: Expresion, args: List<Expresion>, entorno: Entorno): Valor {
             val funcion = funcExpr.evaluar(entorno)
             val valoresArgs = args.map { it.evaluar(entorno) }
@@ -147,4 +136,3 @@ sealed class Expresion {
         }
     }
 }
-

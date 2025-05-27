@@ -18,7 +18,7 @@ sealed class Valor {
      * @property valor Valor booleano almacenado (true/false)
      */
     data class Booleano(val valor: Boolean) : Valor() {
-        override fun toString() = if (valor)  {
+        override fun toString() = if (valor) {
             "#t"
         } else {
             "#f"
@@ -60,4 +60,3 @@ sealed class Valor {
         override fun toString() = "undefined"
     }
 }
-
