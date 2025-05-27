@@ -1,29 +1,30 @@
 package edu.byorkt
 
 class Main {
-    fun run() {
-        val interpreter = Interpreter()
+    fun ejecutar() {
+        val interprete = Interprete()
 
         val codigo = """
             (define fib (lambda (n) (if (or (equal? n 0) (equal? n 1)) 1 (+ (fib (- n 1)) (fib (- n 2))))))
             (fib 5)
         """.trimIndent()
-        val resultado = interpreter.run(codigo)
-        println(interpreter.run(resultado))
+
+        val resultado = interprete.ejecutar(codigo)
+        println(interprete.ejecutar(resultado))
     }
 }
 
 fun main() {
-    val interpreter = Interpreter()
-    println("Byorkt REPL - Escribe 'exit' para salir.")
+    val interprete = Interprete()
+    println("Byorkt REPL - Escribe 'salir' para terminar.")
     while (true) {
         print("> ")
         val entrada = readLine()
-        if (entrada == null || entrada.trim() == "exit") {
+        if (entrada == null || entrada.trim() == "salir") {
             break
         }
         try {
-            val resultado = interpreter.run(entrada)
+            val resultado = interprete.ejecutar(entrada)
             println(resultado)
         } catch (e: Exception) {
             println("Error: ${e.message}")

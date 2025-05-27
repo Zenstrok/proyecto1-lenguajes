@@ -7,7 +7,7 @@ class InterpreterTest {
     @Test
     fun runWithNumber() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = "5"
 
         // when
@@ -21,7 +21,7 @@ class InterpreterTest {
     @Test
     fun runWithBoolean() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = "#t"
 
         // when
@@ -35,7 +35,7 @@ class InterpreterTest {
     @Test
     fun runWithDefine() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = "(define CERO 0)"
 
         // when
@@ -49,7 +49,7 @@ class InterpreterTest {
     @Test
     fun runWithSymbol() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = """
             (define CERO 0)
             CERO
@@ -66,7 +66,7 @@ class InterpreterTest {
     @Test
     fun runWithIdentidad() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = """
             (define identidad (lambda (x) x))
             (identidad 5)
@@ -83,7 +83,7 @@ class InterpreterTest {
     @Test
     fun runWithFactorial() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = """
             (define fact (lambda (n) (if (equal? n 0) 1 (* n (fact (- n 1))))))
             (fact 5)
@@ -100,7 +100,7 @@ class InterpreterTest {
     @Test
     fun runWithFibonacci() {
         // given
-        val interpreter = Interpreter()
+        val interpreter = Interprete()
         val code = """
             (define fib (lambda (n) (if (or (equal? n 0) (equal? n 1)) 1 (+ (fib (- n 1)) (fib (- n 2))))))
             (fib 5)
