@@ -1,15 +1,29 @@
 package edu.byorkt
 
+/**
+ * Excepción lanzada cuando se intenta aplicar un valor que no es una función.
+ * @property func Valor que no pudo ser aplicado
+ */
 class ExcepcionAplicacionInvalida(func: Valor) :
     RuntimeException("No se puede aplicar: $func")
 
+/**
+ * Motor de evaluación principal del lenguaje Byorkt.
+ * Se encarga de evaluar expresiones en un entorno dado y manejar las formas especiales del lenguaje.
+ */
 class Evaluador {
+    /** Entorno global que contiene las definiciones estándar del lenguaje. */
     private val entornoGlobal = Entorno()
 
     init {
         cargarFuncionesIncorporadas()
     }
 
+    /**
+     * Evalúa una secuencia de expresiones y devuelve el resultado de la última.
+     * @param expresiones Lista de expresiones a evaluar
+     * @return Resultado de evaluar la última expresión
+     */
     fun evaluarTodas(expresiones: List<Expresion>): Valor {
         var resultado: Valor = Valor.Indefinido
         for (expresion in expresiones) {
@@ -18,6 +32,12 @@ class Evaluador {
         return resultado
     }
 
+    /**
+     * Evalúa una expresión en un entorno dado.
+     * @param expresion Expresión a evaluar
+     * @param entorno Entorno de evaluación
+     * @return Valor resultante de la evaluación
+     */
     private fun evaluar(expresion: Expresion, entorno: Entorno): Valor = when (expresion) {
         is Expresion.Numero -> Valor.Numero(expresion.valor)
         is Expresion.Booleano -> Valor.Booleano(expresion.valor)
@@ -25,6 +45,13 @@ class Evaluador {
         is Expresion.Lista -> evaluarLista(expresion, entorno)
     }
 
+    /**
+     * Evalúa una expresión de lista (llamada a función o forma especial).
+     * @param expresion Lista que representa la expresión a evaluar
+     * @param entorno Entorno de evaluación
+     * @return Resultado de evaluar la lista
+     * @throws ExcepcionListaVacia si la lista está vacía
+     */
     private fun evaluarLista(expresion: Expresion.Lista, entorno: Entorno): Valor {
         if (expresion.elementos.isEmpty()) {
             throw ExcepcionListaVacia()
@@ -43,6 +70,13 @@ class Evaluador {
         }
     }
 
+    /**
+     * Maneja las formas especiales del lenguaje (define, lambda, if).
+     * @param cabeza Símbolo que identifica la forma especial
+     * @param argumentos Argumentos de la forma especial
+     * @param entorno Entorno de evaluación
+     * @return Resultado de evaluar la forma especial
+     */
     private fun manejarFormasEspeciales(cabeza: Expresion.Simbolo, argumentos: List<Expresion>, entorno: Entorno): Valor =
         when (cabeza.nombre) {
             "define" -> {
@@ -67,6 +101,13 @@ class Evaluador {
             }
         }
 
+    /**
+     * Maneja la forma especial 'if'.
+     * @param argumentos Lista [condición, entonces, sino]
+     * @param entorno Entorno de evaluación
+     * @return Resultado de evaluar la rama correspondiente
+     * @throws ExcepcionCondicionalNoBooleana si la condición no es un booleano
+     */
     private fun manejarCondicional(argumentos: List<Expresion>, entorno: Entorno): Valor {
         val condicion = evaluar(argumentos[0], entorno)
         return when (condicion) {
@@ -81,12 +122,18 @@ class Evaluador {
         }
     }
 
+    /**
+     * Carga todas las funciones predefinidas del lenguaje en el entorno global.
+     */
     private fun cargarFuncionesIncorporadas() {
         cargarAritmeticas()
         cargarComparaciones()
         cargarLogicas()
     }
 
+    /**
+     * Carga las funciones aritméticas básicas (+, -, *, /, %).
+     */
     private fun cargarAritmeticas() {
         entornoGlobal.definir(
             "+",
@@ -132,6 +179,9 @@ class Evaluador {
         )
     }
 
+    /**
+     * Carga las funciones de comparación (<, >, <=, >=, equal?).
+     */
     private fun cargarComparaciones() {
         entornoGlobal.definir(
             "<",
@@ -170,6 +220,9 @@ class Evaluador {
         )
     }
 
+    /**
+     * Carga las funciones lógicas (and, or, not).
+     */
     private fun cargarLogicas() {
         entornoGlobal.definir(
             "and",

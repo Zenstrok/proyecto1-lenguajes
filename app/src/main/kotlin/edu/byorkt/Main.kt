@@ -1,6 +1,14 @@
 package edu.byorkt
 
+/**
+ * Clase principal que demuestra el uso del intérprete Byorkt.
+ * Contiene ejemplos de código y el punto de entrada principal.
+ */
 class Main {
+    /**
+     * Ejecuta un ejemplo de programa en Byorkt.
+     * Este método muestra cómo usar el intérprete con un ejemplo de cálculo de Fibonacci.
+     */
     fun run() {
         val interprete = Interprete()
 
@@ -14,6 +22,10 @@ class Main {
     }
 }
 
+/**
+ * Punto de entrada principal del intérprete Byorkt.
+ * Implementa un bucle REPL (Read-Eval-Print Loop) interactivo.
+ */
 fun main() {
     val interprete = Interprete()
     println("Byorkt REPL - Escribe 'salir' para terminar.")
