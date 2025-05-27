@@ -4,7 +4,7 @@ class Interprete {
     private val analizador = Analizador()
     private val evaluador = Evaluador()
 
-    fun ejecutar(entrada: String): String {
+    fun run(entrada: String): String {
         val expresiones = leer(entrada)
         val resultado = evaluar(expresiones)
         return imprimir(resultado)

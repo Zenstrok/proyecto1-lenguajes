@@ -1,7 +1,7 @@
 package edu.byorkt
 
 class Main {
-    fun ejecutar() {
+    fun run() {
         val interprete = Interprete()
 
         val codigo = """
@@ -9,8 +9,8 @@ class Main {
             (fib 5)
         """.trimIndent()
 
-        val resultado = interprete.ejecutar(codigo)
-        println(interprete.ejecutar(resultado))
+        val resultado = interprete.run(codigo)
+        println(interprete.run(resultado))
     }
 }
 
@@ -24,7 +24,7 @@ fun main() {
             break
         }
         try {
-            val resultado = interprete.ejecutar(entrada)
+            val resultado = interprete.run(entrada)
             println(resultado)
         } catch (e: Exception) {
             println("Error: ${e.message}")

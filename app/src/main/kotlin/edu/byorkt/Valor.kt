@@ -6,15 +6,19 @@ sealed class Valor {
     }
 
     data class Booleano(val valor: Boolean) : Valor() {
-        override fun toString() = if (valor) "#t" else "#f"
+        override fun toString() = if (valor)  {
+            "#t"
+        } else {
+            "#f"
+        }
     }
 
     data class Procedimiento(val parametros: List<String>, val cuerpo: Expresion, val entorno: Entorno) : Valor() {
-        override fun toString() = "#<procedimiento>"
+        override fun toString() = "#<procedure>"
     }
 
     data class FuncionPredefinida(val nombre: String, val impl: (List<Valor>) -> Valor) : Valor() {
-        override fun toString() = "#<primitiva:$nombre>"
+        override fun toString() = "#<builtin:$nombre>"
     }
 
     data class Simbolo(val nombre: String) : Valor() {
@@ -22,7 +26,7 @@ sealed class Valor {
     }
 
     object Indefinido : Valor() {
-        override fun toString() = "indefinido"
+        override fun toString() = "undefined"
     }
 }
 
