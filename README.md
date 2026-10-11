@@ -1,3 +1,41 @@
+# byorkt — A Racket Interpreter in Kotlin
+
+An interpreter for a subset of the functional language **Racket**, built in **Kotlin** for the Programming Languages course (IC-4700) at Instituto Tecnológico de Costa Rica. It runs as an interactive **REPL** and also exposes an `Interpreter.run()` API that evaluates a whole program.
+
+```racket
+> (define square (lambda (x) (* x x)))
+'square
+> (square 5)
+25
+```
+
+## Supported language
+- Integers and booleans
+- Arithmetic (`+ - * /`) and comparisons (`< > <= >= equal?`)
+- Logic (`and`, `or`, `not`) and conditionals (`if`)
+- `define` and `lambda` with **closures** and lexical scoping
+
+## Architecture
+| Component | Role |
+|-----------|------|
+| `Analizador` | Parser: turns source text into an S-expression AST (`Expresion`). |
+| `Evaluador` | Evaluates expressions inside an environment. |
+| `Aplicador` | Applies user-defined procedures and built-in functions. |
+| `Entorno` | Chained environments that implement lexical scope and closures. |
+| `Valor` | Runtime values: numbers, booleans, symbols and procedures. |
+
+Errors such as undefined variables or invalid applications are reported with custom exceptions.
+
+**Quality:** JUnit 5 unit tests · detekt static analysis · GitHub Actions CI
+
+## Run
+```bash
+./gradlew run    # start the REPL
+./gradlew test   # run the tests
+```
+
+# Original assignment (Spanish)
+
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/YG3US8kh)
 IC-4700 Lenguajes de programación  
 Prof. Diego Munguia Molina  
